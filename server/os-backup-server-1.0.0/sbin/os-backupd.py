@@ -3,7 +3,7 @@
 # Name:        os-backupd.py
 # Purpose:     http  server of os-backup for os-backup client.
 # Author:      liufapeng
-# Email:       liufapeng@jd.com
+# Email:       pengfaliu@163.com
 # Created:     12/13/2014  d/m/y
 # Copyright:   (c) liufapeng 2014
 # requirement: python >=2.4,tornado >=3.1.0
