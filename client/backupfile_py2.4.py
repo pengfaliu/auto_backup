@@ -4,7 +4,7 @@
 # Purpose:     backup /etc /home /boot  /root  to storage system.
 #
 # Author:      liufapeng
-# Email:       liufapeng@jd.com
+# Email:       pengfaliu@163.com
 # Created:     12/11/2014  d/m/y
 # Copyright:   (c) liufapeng 2014
 #requirement: python >=2.6
