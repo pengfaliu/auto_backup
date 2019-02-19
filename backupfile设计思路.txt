@@ -1,0 +1,94 @@
+备份程序设计思路
+
+目的：实现/etc /home/ /root/  /boot 目录的备份，并备份到远端的ftp服务器中。
+
+安装方式： 客户端以rpm 包形式安装，并且是无加密的rpm包安装方式。
+设计思路：
+
+一客户端设计
+
+客户端运行思路：安装配置文件及程序，放在系统的cron.weekly里，使用系统的cron 调用实现备份。
+
+1.将需要备份的目录列表放在一个列表中
+2.备份保存到远端的ftp 服务器中，备份文件名为，hostname+ip+timestamp
+3.文件每个目录单独压缩成.tar.gz 文件，最后压缩成一个zip文件
+4.工作目录为：/tmp/importantfilebackup/
+5.把最好一次备份的文件名写入/export/Logs/importantfilebackup/last
+#6.把备份的日志写入/export/Logs/importantfilebackup/backup.log
+7.压缩命令采用本机命令，单个目录压缩使用tar,压缩最后的文件使用zip
+8.每个目录单独，起用多进程(2.6python)或者多线程（2.4python)压缩。
+9.判断是否使用root用户，如果非root用户，记录日志，退出
+10.备份完成后，调用一次get请求，更新备份的次数，backup_count表 count+1  GET /countapi  返回1
+11.如果成功后调用countapi，则POST  backupinfo 插入状态信息   
+12.客户端以字典数据传送过去
+
+数据结构如下：
+backup_state: 1 代表本周或第一个周期的备份经完成
+	      0 代表本周或第一个周期的备份未完成
+
+is_ok: 1 代表备份文件已经上传完成
+       0 代表备份文件未上传完成（上传失败）
+
+insert_time : 代表 备份完提交到数据库的时间戳
+backuptime : 代表开始备份时间戳。
+file_size : 备份文件大小
+
+osbackup_info={{'ip':'192.168.135.110'},'hostname':'xxx.xx.jd.local',
+		'backup_state':'1','is_ok':'1'，'backupfilename':'filename','file_size':'100MB','dirs':'/etc,/var,/root,/boot',
+		'insert_time':'2014-01-01 11:11:11','backup_time':'2014-12-12 12:12:12' },
+
+12.客户端程序配置文件格式
+[Ftp]
+host = 192.168.129.100
+port = 21
+user = upload
+password = jdyunwei@upload
+ftpdir =  osconfiguredir
+
+[API]
+host =  192.168.135.110
+port = 80
+user =  user
+password = pass
+
+[Mail] #对于重点项目可以打开邮件
+switch = on  打开就可以发送邮件 on/off
+tohost = smtp.jd.local
+user = dnsmon
+pass = dnsmonaea97412
+postfix = jd.local
+sender = dnsmon@jd.com
+
+[BackupDirs]
+directory = /etc,/var,/root,/boot
+
+
+
+二、服务端设计
+
+server 端，tornado 作为web服务框架，
+1.通过http协议接收客户端参数，插入到队列中
+2.从队列中读出数据插入到，数据库连接池
+3.写入数据库信息
+4.返回客户端接收到信息0,1. 0：成功，1，失败。
+5.数据库字段.设计出数据库字段
+backup_info表
+id ip  hostname  backup_state    is_ok   backupfilename file_size dirs insert_time  backup_time
+backup_count表
+id ip  count 
+ count 备份的次数
+6.服务端配置文件
+[DB]
+host =  192.168.135.110
+port = 80
+user =  user
+password = pass
+dbname = os_backup
+
+服务端模块：
+1.队列模块 queue 
+2.数据库模块  MySQLdb threading
+  连接池
+  写操作
+  查询操作
+3.http 模块  tornado 
