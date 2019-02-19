@@ -4,7 +4,7 @@
 # Purpose:     backup some diretories  to storage system.
 #
 # Author:      liufapeng
-# Email:       liufapeng@jd.com
+# Email:       pengfaliu@163.com
 # Created:     12/11/2014  d/m/y
 # Last Modify : 13/12/2014 d/m/y
 # Copyright:   (c) liufapeng 2014
